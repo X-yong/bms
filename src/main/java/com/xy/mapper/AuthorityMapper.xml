@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xy.dao.AuthorityDao">
+	<resultMap type="Authority" id="authorityMap">
+	    <id property="id"  column="id" />
+	    <result property="u_id"  column = "u_id" />
+	    <result property="authority_id"  column = "authority_id"/>
+	     <result property="authority_powertime"  column = "authority_powertime" />
+	    <result property="authority_powerperson" column = "authority_powerperson" />		
+	</resultMap>
+	<!-- 权限查询 -->
+	<select id="qryAuthorityDao" resultMap="authorityMap" parameterType="com.xy.vo.UserVo">
+	   select t.* from USERPOWER t 
+	    where 1=1
+		   and t.u_id = #{u_id} 
+	</select> 
+	<update id="grantAuthorityDao"  parameterType="com.xy.vo.AuthorityVo">
+	update 
+	  userpower
+    	<set>
+    	  <if test="u_id !=null ">
+		     u_id = #{u_id},
+		  </if> 
+          <if test="authority_id !=null ">
+		     authority_id = #{authority_id},
+		  </if> 
+		  <if test="authority_powerperson !=null ">
+		     authority_powerperson = #{authority_powerperson},
+		  </if> 
+	      authority_powertime = now()
+	    </set>
+	    where u_id = #{u_id} 
+	</update> 
+	<delete id="removeAuthorityDao"  parameterType="List">
+	   delete from userpower where u_id in
+	     <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+	</delete> 
+	<insert id="insertAuthorityDao" parameterType="com.xy.vo.AuthorityVo">
+	  INSERT INTO 
+	   userpower
+	    (authority_id,
+	     u_id,
+	     authority_powertime)
+       VALUES (#{authority_id},#{u_id},NOW())
+	</insert>
+	
+	
+</mapper>

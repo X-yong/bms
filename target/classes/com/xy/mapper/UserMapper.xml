@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xy.dao.UserDao">
+	<resultMap type="User" id="UserMap">
+	    <id property="id"  column="id" />
+	    <result property="u_id"  column = "u_id" />
+	    <result property="u_idCard"  column = "u_idCard" />
+		<result property="u_name" column="u_name" />
+		<result property="u_password" column="u_password" />
+		<result property="u_phone" column="u_phone" />
+		<result property="u_email" column="u_email" />
+		<result property="u_operateTime" column="u_operatetime" />
+		<result property="u_createTime" column="u_createtime" />
+		<result property="u_photo" column="u_photo" />
+		<result property="u_state" column="u_state" />
+		<result property="u_balance" column="u_balance" />
+		<result property="u_credit" column="u_credit" />
+		<association property="authority" javaType="Authority"> 
+		  <id property="id"  column="id" />
+		  <result property="u_id"  column = "u_id" />
+	      <result property="authority_id"  column = "authority_id" />
+		  <result property="authority_powertime" column="authority_powertime" />
+		  <result property="authority_powerperson" column="authority_powerperson" />
+		</association>
+	</resultMap>
+	<!-- 用户登录 -->
+	<select id="loginDao" resultMap="UserMap" parameterType="com.xy.vo.UserVo">
+	  select *
+	    from users t 
+	    left join userpower u
+	    on t.u_id = u.u_id
+	    where 1=1
+		   and t.u_id = #{u_id} 
+		   and t.u_password = #{u_password}
+	</select> 
+	
+	<insert id="userRegistrationDao" parameterType="User">
+	   insert into users(u_id,u_IDcard,u_name,u_password,u_phone,u_email,u_operatetime,u_createtime,u_photo)
+	     value(#{u_id},#{u_idCard},#{u_name},#{u_password},#{u_phone},#{u_email},now(),now(),#{u_photo})
+	</insert> 
+	<select id="selectUserInfoDao" resultMap="UserMap" parameterType="com.xy.vo.UserVo">
+	   select *
+	    from users t 
+	    left join userpower u
+	    on t.u_id = u.u_id
+	    <where>
+	         1= 1
+	         <if test="root == null ">
+			     and t.root is null
+			 </if> 
+			  <if test="u_idCard != null and u_idCard != ''">
+			     and t.u_idcard = #{u_idCard}
+			 </if>  
+			 <if test="u_id !=null and u_id !=''">
+			     and t.u_id = #{u_id }
+			 </if>
+			 <if test="u_name !=null and u_name !=''">
+			     and t.u_name like CONCAT(CONCAT('%',#{u_name}),'%') 
+			 </if>
+			 <if test="u_state !=null ">
+			     and t.u_state = #{u_state }
+			 </if>
+			 <if test="u_startDate !=null and u_startDate !=''">
+			     and <![CDATA[ t.u_createtime >= #{u_startDate}]]>
+			 </if>
+			 <if test="u_endDate !=null and u_endDate !=''">
+			     and <![CDATA[ t.u_createtime <= #{u_endDate}]]>
+			 </if>
+			  <if test="u_role !=null and u_role !='' ">
+			     and u.authority_id like CONCAT(CONCAT('%',#{u_role}),'%')
+			 </if>
+			 limit #{start},#{rows}
+		</where> 
+	</select> 
+	<update id="updateUserByIdDao"  parameterType="com.xy.vo.UserVo">
+	   update users 
+	    <set>
+           <if test="u_name !=null ">
+			      u_name = #{u_name},
+		   </if>
+		   <if test="u_password !=null ">
+			      u_password = #{u_password},
+		   </if>
+		   <if test="u_phone !=null ">
+			      u_phone = #{u_phone},
+		   </if>
+		   <if test="u_email !=null ">
+			      u_email = #{u_email},
+		   </if>
+		   <if test="u_photo !=null ">
+			      u_photo = #{u_photo},
+		   </if>
+		   <if test="u_state !=null">
+			      u_state = #{u_state},
+		   </if>
+		   <if test="u_credit !=null">
+			      u_credit = #{u_credit},
+		   </if>
+		   <if test="u_balance !=0.0 and u_balance !=null">
+			      u_balance = #{u_balance},
+		   </if>
+		   u_operatetime = now(),
+       </set>
+       where u_id = #{u_id}	
+           <if test="u_idCard !=null ">
+			    and u_idCard = #{u_idCard}
+		   </if>      
+	</update> 
+	<delete id="deleteUserByIdDao"  parameterType="List">
+	   delete from users where u_id in
+	     <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+	</delete> 
+    <update id="setRootValueDao"  parameterType="Map">
+	   update users 
+	    set root = #{flag}
+	     where u_id = #{u_id}
+    </update>
+    <select id="getUserInfoByIdDao" resultMap="UserMap" parameterType="String" > 
+       select * from users where u_id = #{u_id}
+    </select>
+    <select id="getAllUserRowsDao" resultType="Integer" parameterType="String" >
+	  SELECT
+	    count(u.id)
+		FROM
+			users u
+		LEFT JOIN userpower p ON u.u_id = p.u_id
+		WHERE
+			AUTHORITY_ID = #{authority_id}
+	</select>
+	 <select id="getAllMessageRowsDao" resultType="Integer" parameterType="String">
+	  select count(id) from message where s_flag = 0 and ru_id = #{ru_id}
+	</select>
+	<!-- 查询message -->
+	 <select id="getMessageDao" parameterType="com.xy.vo.MessageVo" resultType="Map">
+	  select * from message 
+	   <where>
+	      1=1
+	     <if test="su_id != null">
+	        and su_id = #{su_id}
+	     </if>
+	     <if test="ru_id != null">
+	        and ru_id = #{ru_id}
+	     </if>
+	     and s_flag = 0
+	     limit #{start},#{rows}
+	   </where>
+	</select>
+	<!-- 修改message 状态 -->
+	<update id="updateMessageByIdDao" parameterType="Map">
+	 update message set s_flag = #{flag}  where id = #{id}
+	</update>
+	<insert id="insertMessageDao" parameterType="Map">
+	  insert into message(su_id,ru_id,s_content,s_time)
+	    values(#{su_id},#{ru_id},#{s_content},now())
+	</insert>
+	
+</mapper>

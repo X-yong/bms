@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xy.dao.BookDao">
+	<resultMap type="Book" id="bookMap">
+	    <id property="id"  column="id" />
+	    <result property="b_id"  column = "b_id" />
+	    <result property="b_name"  column = "b_name"/>
+	    <result property="b_type"  column = "b_type" />
+	    <result property="b_authorid" column = "b_authorid" />		
+	    <result property="b_author" column = "b_author" />		
+	    <result property="b_press" column = "b_press" />		
+	    <result property="b_enterTime" column = "b_entertime" />		
+	    <result property="b_price" column = "b_price" />		
+	    <result property="b_state" column = "b_state" />		
+	    <result property="b_kind" column = "b_kind" />		
+	    <result property="b_url" column = "b_url" />	
+	    <result property="b_imgurl" column = "b_imgurl" />			
+	    <result property="b_remark" column = "b_remark" />		
+	    <result property="b_isbn" column = "b_isbn" />		
+	    <result property="b_revision" column = "b_revision" />		
+	    <result property="b_stock" column = "b_stock" />
+	    <result property="b_operateTime" column = "b_operatetime" />	
+	    <result property="b_account" column = "b_account" />			
+	</resultMap>
+	<!--图书类别查询  -->
+	<select id="getBookTypeDao" resultType="Map">
+	   select * from booktype
+	</select>
+	<!-- 图书查询 -->
+	<select id="selectBookInfoDao" resultMap="bookMap" parameterType="com.xy.vo.BookVo">
+	  SELECT *
+		FROM
+			books t
+		LEFT JOIN booktype b ON t.b_type = b.typeid
+	   <where> 
+	      1=1
+	      <if test="b_id !=null and b_id !=''">
+			  and t.b_id = #{b_id }
+	      </if>
+	      <if test="b_name !=null and b_name !=''">
+	          and t.b_name like CONCAT(CONCAT('%',#{b_name}),'%') 
+	      </if>
+	      <if test="b_type !=null and b_type !=''">
+			  and t.b_type = #{b_type }
+	      </if>
+		  <if test="b_startDate !=null and b_startDate !=''">
+			  and <![CDATA[ t.b_entertime >= #{b_startDate}]]>
+		  </if>
+		  <if test="b_endDate !=null and b_endDate !=''">
+			  and <![CDATA[ t.b_entertime <= #{b_endDate}]]>
+		  </if>
+		  <if test="b_kind !=null">
+			  and t.b_kind = #{b_kind}
+	      </if>
+	       <if test="b_stock !=null">
+			  and t.b_stock > 0
+	      </if>
+	        <if test="b_authorid !=null and b_authorid !=''">
+			  and t.b_authorid = #{b_authorid} 
+	      </if>
+	       limit #{start},#{rows}
+	   </where> 
+	  
+	</select> 
+	<select id="getAddId" resultType="Integer">
+      	SELECT auto_increment  FROM information_schema.`TABLES` WHERE TABLE_SCHEMA='bms' AND TABLE_NAME='books'
+    </select>
+	<!-- 新增图书  -->
+	<insert id="addBookDao" parameterType="com.xy.vo.BookVo">
+	
+	 INSERT INTO books (
+		b_id,
+		b_name,
+		b_type,
+		b_authorid,
+		b_author,
+		b_press,
+		b_entertime,
+		b_price,
+		b_kind,
+		b_isbn,
+		b_remark,
+		b_revision,
+		b_stock,
+		b_url,
+		b_imgurl,
+		b_state
+	 )
+	 VALUES
+	 	(
+	   	CONCAT( #{b_id},"0000",#{id}),#{b_name},#{b_type},#{b_authorid},#{b_author},#{b_press},now(),#{b_price},#{b_kind},
+	   	         #{b_isbn},#{b_remark},#{b_revision},#{b_stock},#{b_url},#{b_imgurl},#{b_state})
+
+	</insert> 
+	
+	<update id="updateBookDao"  parameterType="com.xy.vo.BookVo">
+	update 
+	  books
+    	<set>
+    	  <if test="b_id !=null ">
+		     b_id = #{b_id},
+		  </if>
+		   <if test="b_name !=null ">
+		     b_name = #{b_name},
+		  </if> 
+		   <if test="b_type !=null ">
+		     b_type = #{b_type},
+		  </if> 
+		   <if test="b_author !=null ">
+		     b_author = #{b_author},
+		  </if> 
+		   <if test="b_press !=null ">
+		     b_press = #{b_press},
+		  </if> 
+		   <if test="b_price !=null ">
+		     b_price = #{b_price},
+		  </if>  
+		  <if test="b_kind !=null ">
+		     b_kind = #{b_kind},
+		  </if>  
+		  <if test="b_isbn !=null ">
+		     b_isbn = #{b_isbn},
+		  </if>  
+		  <if test="b_remark !=null ">
+		     b_remark = #{b_remark},
+		  </if>  
+		  <if test="b_revision !=null ">
+		     b_revision = #{b_revision},
+		  </if>  
+		  <if test="b_stock !=null ">
+		     b_stock = #{b_stock},
+		  </if>  
+           b_operatetime = now() 
+	    </set>
+	    where b_id = #{b_id} 
+	</update> 
+
+	<delete id="deleteBookDao"  parameterType="List">
+	   delete from books where b_id in
+	     <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+	</delete>  
+	<!-- 图书借阅 -->
+	<insert id="borrowBookDao" parameterType="com.xy.vo.BorrowBookVo">
+	  INSERT INTO borrowbooks (
+		u_id,
+		b_id,
+		br_time,
+		sh_time
+	)
+	VALUES
+	(#{u_id}, #{b_id}, now(), #{sh_time})
+	</insert>
+	<delete id="deleteBorrowBookDao" parameterType="Map">
+	  delete from borrowbooks
+	  <where>
+	       1 = 1
+	      <if test="b_id != null and b_id != ''">
+	        and b_id = #{b_id} 
+  	      </if>
+  	      <if test="u_id != null and u_id != ''">
+	        and u_id = #{u_id} 
+  	      </if>
+	   </where>
+	   
+	</delete>
+	<!-- 修改库存和计数 -->
+	<update id="updateStockDao" parameterType="com.xy.vo.BookVo">
+	  UPDATE books 
+	     <set>
+	        <if test="b_stock !=null ">
+				 b_stock = #{b_stock },
+		    </if>
+		     <if test="b_account !=null ">
+				 b_account = #{b_account },
+		    </if>
+		    b_operatetime=now()
+	     </set>
+	     where b_id=#{b_id}
+	</update>
+		<!--查询库存 -->
+	<select id="getBookStockDao" parameterType="String" resultType="Integer">
+       select b_stock from books where b_id=#{b_id}
+	</select>
+	
+	<!--查询借还书记录 -->
+	<select id="qryReturnAndBorrowBookDao" parameterType="com.xy.vo.BorrowBookVo" resultType="Map">
+	 SELECT	t.*,b.*,u.U_NAME,p.typename
+		FROM
+			borrowbooks t
+			left join books b on t.b_id = b.b_id
+			left join booktype p on b.b_type = p.typeid
+			left join users u on t.u_id = u.u_id
+		<where> 
+	      1=1
+		      <if test="id !=null  and id != '' ">
+				  and t.id = #{id }
+		      </if>
+		      <if test="b_name !=null  and b_name != '' ">
+				  and t.b_id in (select b_id from books where b_name = #{b_name} )
+		      </if>
+		      <if test="b_id !=null  and b_id != ''">
+				  and t.b_id = #{b_id }
+		      </if>
+		      <if test="u_id !=null and u_id != '' ">
+				  and t.u_id = #{u_id }
+		      </if>
+		      <if test="br_time !=null  and br_time != ''">
+				  and t.br_time = #{br_time }
+		      </if>
+		      <if test="sh_time !=null   and sh_time != ''">
+				  and t.sh_time = #{sh_time }
+		      </if>
+		      <if test="re_time !=null and re_time != ''">
+				  and t.re_time = #{re_time }
+		      </if>
+		      <if test="bo_state !=null and bo_state != ''">
+				  and t.bo_state  != #{bo_state}
+		      </if>
+	       order by t.id desc
+	       limit #{start},#{rows} 
+	      </where>
+	</select>
+	<update id="returnBookDao" parameterType="Integer">
+	  UPDATE borrowbooks 
+	     set re_time = now(), bo_state=1
+	     where id = #{id}
+	</update>
+	<!--借阅排行  -->
+	<select id="rankOfBorrowDao" resultType="Map" parameterType="String" >
+	  select * 
+	    from
+	     books b 
+	     LEFT JOIN booktype t ON b.b_type = t.typeid
+	   where b_kind = #{b_kind} 
+	      order by  b.b_account desc limit 0,10
+	</select>
+	<update id="reletBookDao" parameterType="com.xy.vo.BorrowBookVo">
+	 update borrowbooks 
+	  set 
+		  sh_time = #{sh_time},
+		  b_relet = #{b_relet}
+	   where id = #{id} 
+	</update>
+	<select id="getBookInfoByidDao" resultMap="bookMap" parameterType="String" >
+	  select b.* ,p.typename
+	  from 
+	    books b
+	    left join booktype p
+	     on b.b_type = p.typeid
+	  where b.b_id = #{b_id} 
+	</select>
+	<select id="getAllBookRowsDao" resultType="Integer" parameterType="String">
+	  select count(id) from books where b_kind = #{b_kind}
+	</select>
+	<select id="getAllBorrowBookRowDao" resultType="Integer" parameterType="String">
+	  select count(id) from borrowbooks 
+	</select>
+	<!-- 查询用户借书未还记录 -->
+    <select id="getUserBorrowBookOnReturnDao" resultMap="bookMap" parameterType="Map">
+ 	SELECT
+	   *
+		FROM
+			borrowbooks 
+		WHERE
+			u_id = #{u_id}
+		AND b_id = #{bid}
+		AND (BO_STATE = 0 or BO_STATE = 2);
+	</select>
+	
+	<!--查询借书表个个状态的记录 -->
+	 <select id="getBorrowBooksBystateDao" resultType="Map" parameterType="Integer">
+ 	SELECT
+		   b.id,
+		   b.u_id,
+		   u.u_name,
+		   b.b_id,
+		   t.b_name,
+		   b.br_time,  
+		   b.sh_time,
+		   b.re_time,
+		   b.bo_state,
+		   b.b_relet
+		FROM
+			borrowbooks b
+			left join books t on b.b_id = t.b_id 
+			left join users u on  b.u_id= u.u_id
+		WHERE
+	     bo_state != #{bo_state};
+	</select>
+	<!-- 逾期处理 -->
+	<update id="updateOverdueDealDao"  parameterType="Integer">
+	  update borrowbooks 
+	     set bo_state=2
+	     where id = #{id}
+	</update>
+	<!--  预约借书 -->
+	<insert id="insertAppointmentDao" parameterType="com.xy.vo.BorrowBookVo">
+	INSERT INTO
+	 bookappointment 
+	 (u_id,
+	  b_id, 
+	  b_appointtime)
+      VALUES
+	 (#{u_id}, #{b_id}, #{b_appointtime})
+	</insert>
+	<select id="qryAppointmentDao" parameterType="com.xy.vo.BorrowBookVo" resultType="com.xy.vo.BorrowBookVo" >
+	  select a.* ,b.b_name
+	   from 
+	    bookappointment a
+	    left join books b on a.b_id = b.b_id
+	   <where>
+	      1=1
+	     <if test="u_id != null and u_id != ''">
+	       and  a.u_id = #{u_id}
+	     </if>
+	     <if test="b_id !=null and b_id != ''">
+		   and  a.b_id = #{b_id}
+		 </if>
+		  order by a.id desc
+	       limit #{start},#{rows} 
+	   </where>
+	</select>
+	<select id="getAppointmentCountDao" resultType="Integer">
+	 select count(id) from bookappointment
+	</select>
+	<!-- 预约过期删除 -->
+	<delete id="deleteAppointmentDao" parameterType="Integer">
+	    delete from bookappointment where id = #{id}
+	</delete>
+	<!-- 查询用户借的书或图书是否被借阅 -->
+	<select id="qryBookByBorrowDao" parameterType="Map" resultType="Map">
+	 select * from borrowbooks 
+	  <where>
+	       1 = 1
+	      <if test="bid != null and bid != ''">
+	        and b_id = #{bid} 
+  	      </if>
+  	      <if test="u_id != null and u_id != ''">
+	        and u_id = #{u_id} 
+  	      </if>
+  	       <if test="bo_state != null ">
+	        and bo_state != #{bo_state} 
+  	      </if>
+	   </where>
+	</select>
+	<!-- 删除借阅信息 -->
+	<delete id="deleteBookByBorrowDao" parameterType="Map">
+	  delete from borrowbooks
+	  <where>
+	       1 = 1
+	      <if test="b_id != null and b_id != ''">
+	        and b_id = #{b_id} 
+  	      </if>
+  	      <if test="u_id != null and u_id != ''">
+	        and u_id = #{u_id} 
+  	      </if>
+	   </where>
+	</delete>
+</mapper>

@@ -1,0 +1,48 @@
+/* body {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 12px;
+	margin: 0;
+} */
+
+ #main {
+	height: 400px;
+	padding-top: 90px;
+	text-align: right;
+}
+
+#fullbg {
+	background-color: gray;
+	left: 0;
+	opacity: 0.5;
+	position: absolute;
+	top: 0;
+	z-index: 99998;
+	filter: alpha(opacity = 50);
+	-moz-opacity: 0.5;
+	-khtml-opacity: 0.5;
+}
+
+#dialog {
+	background-color: #c0c0c0;
+	border: 5px solid rgba(0, 0, 0, 0.4);
+	height: 200px;
+	/* opacity: 1; */
+	left:40%;
+	margin: -200px 0 0 -200px;
+	padding: 1px;
+	position: fixed !important; /* 浮动对话框 */
+	position: absolute;
+	top: 50%;
+	width: 500px;
+	z-index: 99999;
+	border-radius: 5px;
+	display: none;
+}
+
+#dialog p {
+	margin: 0 0 12px;
+	height: 24px;
+	line-height: 24px;
+	background: #c0c0c0;
+	text-align: left;
+}

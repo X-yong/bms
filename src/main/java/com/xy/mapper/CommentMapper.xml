@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xy.dao.CommentDao">
+	
+	<!-- 查询图书评论 -->
+    <select id="qryBookCommentDao" resultType="Map" parameterType="String">
+ 	SELECT
+		t.id,
+		t.u_id,
+		t.u_name,
+		t.b_id,
+		t.c_comment,
+		t.c_reply,
+		t.c_commenttime
+	FROM
+		COMMENT t
+	where t.b_id = #{b_id} order by t.c_commenttime desc
+	</select>
+	<!-- 插入评论 -->
+	<insert id="addCommentDao" parameterType="Map">
+	insert INTO comment (
+			U_ID,
+			U_NAME,
+			B_ID,
+			C_COMMENT,
+			C_REPLY,
+			C_COMMENTTIME)
+		VALUES
+		(#{u_id},#{u_name},#{bid},#{comment},#{c_reply},now())
+	</insert>
+	<!-- 删除评论 -->
+	<delete id="deleteCommentDao" parameterType="Map">
+	  delete from comment 
+	   <where>
+	       1 = 1
+	      <if test="bid != null and bid != ''">
+	        and B_ID = #{bid} 
+  	      </if>
+  	      <if test="u_id != null and u_id != ''">
+	        and U_ID = #{u_id} 
+  	      </if>
+	   </where>
+	</delete>
+	
+</mapper>
