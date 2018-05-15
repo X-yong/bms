@@ -1,13 +1,14 @@
 //alert($)
-$(document).ready(function() {//页面加载完成再加载脚本
+$(function(){
 	$('input[name="loginButton"]').click(function(event) {
 		 this.disabled=true; 
-        setTimeout(function (){ 
-            $("#u1").prop("disabled",false);
-         },3000);
-         login();
+       setTimeout(function (){ 
+           $("#u1").prop("disabled",false);
+        },3000);
+        login();
 	});
-});
+	
+})
 
 function KeyDown()
 {
@@ -43,24 +44,22 @@ function login() {
 		alert("验证码错误");
 		return;
 	} else {
-	  $.ajax({
+		$.ajax({
 			url :"/bms/userLoginController/checkLogin.do",
 			data : $("#flogin").serialize(),
 			type : "post",
 			success : function(result) {
-				if (result =="fail") {
-					$text.text("用户名或密码错误!!");
-			   } else if (result = "success") {
-			   	   //$text.text("登陆成功，请稍后...");
-			   	   window.location.href=　"/bms/view/mainView.do";　
-			   }
+				if(result  == "fail") {
+					$text.text("用户名或密码错误！！")
+				} 
+				if(result  == "success") {
+					window.localtion.href="/bms/view/mainView.do";
+				}		
 			},
-			error : function(result) {
-			    alert("系统暂时无法登录，请检查您的网络配置是否正确！！");
-			}
-	  
-		}) 		
+		error : function(result) {
+		    alert("系统暂时无法登录，请检查您的网络配置是否正确！！");
+		   }
+		})
+		
 	}
-	
-	
 }
